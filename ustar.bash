@@ -16,6 +16,7 @@ ustar-dump() {
     eval local -a F=\( [{0..17}]= \)
     local -n w="W[i]" t="T[i]"
     local -i i d
+    local v
     usage() {
         printf 'USAGE: ustar-dump [-hBCDFLPS] [-o OPT] [--] [PATH] [PAYLOAD]\n'
     }
@@ -95,7 +96,7 @@ ustar-dump() {
         local -a argv fldv
         local arg k v
         # shellcheck disable=SC2162
-        IFS=, read -a argv <<<"$OPTARG"
+        IFS=$',\n' read -a argv <<<"$OPTARG"
         for arg in "${argv[@]}"; do
             IFS=+ read -ra fldv <<<"${arg%%=*}"
             for k in "${fldv[@]}"; do
@@ -127,6 +128,9 @@ ustar-dump() {
             done
         done
     }
+    if [[ -n ${USTAR_OPTS:+x} ]]; then
+        OPTARG="$USTAR_OPTS" setopt
+    fi
     while getopts ":hBCDFLPSo:" opt; do
         case "$opt" in
             o) setopt ;;
@@ -142,12 +146,18 @@ ustar-dump() {
     done
     shift $((OPTIND-1))
     if [[ -z "${F[15]}${F[0]}" ]]; then
-        v="$1" setpath_v
+        # Use first argument ($1) to set the path if neither `name` (0) nor
+        # `prefix` (15) has been previously set. This mode is for convenience
+        # and offers some auto magic-like:
+        # - trim trailing `/`
+        # - append `/` if type is set to directory
+        printf -v v '%s%b' "${1/%\/*/}" "\\0$(( 57 * (F[7] == 5) ))"
+        setpath_v
     fi
     # size     magic      version  reserved payload
     F[4]=${#2} F[9]=ustar F[10]=00 F[16]="" F[17]="$2"
     # calculate header checksum for fields 0..15
-    local v="${F[*]:0:16}"
+    v="${F[*]:0:16}"
     for (( i=0,F[6]=256; i<${#v}; i++,F[6]+=d )); do
         # Get ordinal number for ASCII character.
         # This is equivalent to ord(v[i]).
