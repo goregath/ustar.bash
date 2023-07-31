@@ -75,7 +75,7 @@ ustar-dump() {
         # Set a file path and split up between fields of `name` (0) and
         # `prefix` (15) whenever possible.
         local p n t
-        # set and truncate value to `prefix` of width 154+1. We allow an
+        # Set and truncate value to `prefix` of width 154+1. We allow an
         # additional character to handle an additional `/`.
         p="${v:0:155}"
         # find last `/` in prefix
@@ -145,7 +145,7 @@ ustar-dump() {
         esac
     done
     shift $((OPTIND-1))
-    if [[ -z "${F[15]}${F[0]}" ]]; then
+    if [[ -z ${F[15]:+x}${F[0]:+x} ]]; then
         # Use first argument ($1) to set the path if neither `name` (0) nor
         # `prefix` (15) has been previously set. This mode is for convenience
         # and offers some auto magic-like:
@@ -159,8 +159,8 @@ ustar-dump() {
     # calculate header checksum for fields 0..15
     v="${F[*]:0:16}"
     for (( i=0,F[6]=256; i<${#v}; i++,F[6]+=d )); do
-        # Get ordinal number for ASCII character.
-        # This is equivalent to ord(v[i]).
+        # Get ordinal number for ASCII character,
+        # this is equivalent to ord(v[i]).
         printf -v d %d "'${v:$i:1}"
     done
     printf -v F[6] %o "${F[6]}"
