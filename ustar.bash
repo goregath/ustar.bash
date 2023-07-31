@@ -9,19 +9,16 @@
 # Dump a tar-header with payload to stdout according to POSIX 1003.1-1990 with a blocksize of 512.
 ustar-dump() {
     local IFS= LC_CTYPE=C
-    local OPTARG OPTIND OPTERR=1 opt
     #             0   1        5            10          15
     local -ra T=( s   o o o o  d  s t s   s s s  s  o o s   s  s )
     local -ra W=( 100 8 8 8 12 12 8 1 100 6 2 32 32 8 8 155 12 512 )
     eval local -a F=\( [{0..17}]= \)
-    local -n w="W[i]" t="T[i]"
-    local -i i d
-    local v
     usage() {
         printf 'USAGE: ustar-dump [-hBCDFLPS] [-o OPT] [--] [PATH] [PAYLOAD]\n'
     }
     dump_i() {
         # Dump field at `i` aligned to field width `w`.
+        local -n w="W[i]" t="T[i]"
         local -i n=${#F[i]}
         local -i p=$(( n == 0 ? w : (n != w ? w - n % w : 0) ))
         # Special case for i=17: Do not dump if payload is zero length.
@@ -33,7 +30,7 @@ ustar-dump() {
         fi
     }
     set_iv() {
-        # Set field at `i` to `v` with respect to type and width.
+        # Set field at `i` to `v` with respect to type `t` and width `w`.
         local -n w="W[i]" t="T[i]"
         case $t in
             t )
@@ -128,6 +125,8 @@ ustar-dump() {
             done
         done
     }
+    local -i i d
+    local OPTARG OPTIND OPTERR=1 opt v
     if [[ -n ${USTAR_OPTS:+x} ]]; then
         OPTARG="$USTAR_OPTS" setopt
     fi
@@ -148,13 +147,16 @@ ustar-dump() {
     if [[ -z ${F[15]:+x}${F[0]:+x} ]]; then
         # Use first argument ($1) to set the path if neither `name` (0) nor
         # `prefix` (15) has been previously set. This mode is for convenience
-        # and offers some auto magic-like:
+        # and offers some auto-magic, like:
         # - trim trailing `/`
         # - append `/` if type is set to directory
-        printf -v v '%s%b' "${1/%\/*/}" "\\0$(( 57 * (F[7] == 5) ))"
+        printf -v v '%s%b' "${1/%\//}" "\\0$(( 57 * (F[7] == 5) ))"
         setpath_v
     fi
-    # size     magic      version  reserved payload
+    # Set header `magic` (9), `version` (10), payload ($2) and `size`(4) of
+    # payload. The second argument can be utilized to dump an aligned
+    # payload (17) after the header block.
+    # SIZE     MAGIC      VERSION  RESERVED PAYLOAD
     F[4]=${#2} F[9]=ustar F[10]=00 F[16]="" F[17]="$2"
     # calculate header checksum for fields 0..15
     v="${F[*]:0:16}"
