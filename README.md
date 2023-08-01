@@ -2,7 +2,7 @@
 
 A pure bash library for generating uncompressed tarball chunks.
 
-This implementation fully self-contained and does not rely on any external programs.
+This implementation is fully self-contained and does not rely on any external programs.
 
 Tested with _bash 5.1_, striving for support from _4.3+_.
 
