@@ -179,8 +179,11 @@ ustar-dump() {
     # payload (17) after the header block.
     # MAGIC    VERSION  RESERVED PAYLOAD
     F[9]=ustar F[10]=00 F[16]="" F[17]="${2:-}"
-    # set `size` (4)
-    i=4 v=${#F[17]} set_iv
+    # only set `size` if payload not empty
+    if (( ${#F[17]} )); then
+        # set `size` (4)
+        i=4 v=${#F[17]} set_iv
+    fi
     # calculate `checksum` for fields 0..15
     s="${F[*]:0:16}"
     for (( i=0,v=256; i<${#s}; i++,v+=d )); do
