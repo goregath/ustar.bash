@@ -148,7 +148,6 @@ ustar-dump() {
         usage >&2
         return 1
     fi
-    echo "$1 ${1%%*(/)}" >&2
     if [[ -z ${F[15]:+x}${F[0]:+x} ]]; then
         # Use first argument ($1) to set the path if neither `name` (0) nor
         # `prefix` (15) has been previously set. This mode is for convenience
