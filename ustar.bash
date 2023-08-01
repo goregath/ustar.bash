@@ -10,7 +10,7 @@
 ustar-dump() {
     local IFS= LC_CTYPE=C
     #             0   1        5            10          15
-    local -ra T=( s   o o o o  d  s t s   s s s  s  o o s   s  s )
+    local -ra T=( s   o o o o  d  o t s   s s s  s  o o s   s  s )
     local -ra W=( 100 8 8 8 12 12 8 1 100 6 2 32 32 8 8 155 12 512 )
     eval local -a F=\( [{0..17}]= \)
     usage() {
@@ -126,7 +126,7 @@ ustar-dump() {
         done
     }
     local -i i d
-    local OPTARG OPTIND OPTERR=1 opt v
+    local OPTARG OPTIND OPTERR=1 opt v s
     if [[ -n ${USTAR_OPTS:+x} ]]; then
         OPTARG="$USTAR_OPTS" setopt
     fi
@@ -144,13 +144,18 @@ ustar-dump() {
         esac
     done
     shift $((OPTIND-1))
+    if (( $# == 0 )); then
+        usage >&2
+        return 1
+    fi
+    echo "$1 ${1%%*(/)}" >&2
     if [[ -z ${F[15]:+x}${F[0]:+x} ]]; then
         # Use first argument ($1) to set the path if neither `name` (0) nor
         # `prefix` (15) has been previously set. This mode is for convenience
         # and offers some auto-magic, like:
         # - trim trailing `/`
         # - append `/` if type is set to directory
-        printf -v v '%s%b' "${1/%\//}" "\\0$(( 57 * (F[7] == 5) ))"
+        printf -v v '%s%b' "${1%/}" "\\0$(( 57 * (F[7] == 5) ))"
         setpath_v
     fi
     # Set header `magic` (9), `version` (10), payload ($2) and `size`(4) of
@@ -158,15 +163,17 @@ ustar-dump() {
     # payload (17) after the header block.
     # MAGIC    VERSION  RESERVED PAYLOAD
     F[9]=ustar F[10]=00 F[16]="" F[17]="${2:-}"
+    # set `size` (4)
     i=4 v=${#F[17]} set_iv
-    # calculate header checksum for fields 0..15
-    v="${F[*]:0:16}"
-    for (( i=0,F[6]=256; i<${#v}; i++,F[6]+=d )); do
+    # calculate `checksum` for fields 0..15
+    s="${F[*]:0:16}"
+    for (( i=0,v=256; i<${#s}; i++,v+=d )); do
         # Get ordinal number for ASCII character,
-        # this is equivalent to ord(v[i]).
-        printf -v d %d "'${v:$i:1}"
+        # this is equivalent to ord(s[i]).
+        printf -v d %d "'${s:$i:1}"
     done
-    printf -v F[6] %o "${F[6]}"
+    # set `checksum` (6)
+    i=6 set_iv
     for (( i=0; i<18; i++ )); do
         # dump fields
         dump_i
