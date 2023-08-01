@@ -1,0 +1,13 @@
+# .proverc
+
+# OPTIONS
+
+--comments
+--directives
+--failures
+--ignore-exit
+--merge
+
+# TEST FILES
+
+test/setpath.bats
