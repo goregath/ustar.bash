@@ -14,7 +14,25 @@ ustar-dump() {
     local -ra W=( 100 8 8 8 12 12 8 1 100 6 2 32 32 8 8 155 12 512 )
     eval local -a F=\( [{0..17}]= \)
     usage() {
-        printf 'USAGE: ustar-dump [-hBCDFLPS] [-o OPT] [--] [PATH] [PAYLOAD]\n'
+        printf 'USAGE: ustar-dump [-hBCDFHLP] [-o OPTION] [--] PATH [PAYLOAD]\n'
+    }
+    # shellcheck disable=SC2016
+    help() {
+        usage
+        echo
+        echo 'Dump a tar header chunk and payload to stdout according to POSIX.1-2001'
+        echo 'with a blocksize of 512 bytes.'
+        echo
+        echo '  -h         Display this text and exit.'
+        echo '  -B         Set to block device,     alias for `-o type=blk,mode=0666`.'
+        echo '  -C         Set to character device, alias for `-o type=chr,mode=0666`.'
+        echo '  -D         Set to directory,        alias for `-o type=dir,mode=0775`.'
+        echo '  -F         Set to regular file,     alias for `-o type=reg,mode=0644`.'
+        echo '  -H         Set to hard link,        alias for `-o type=lnk,mode=0644`.'
+        echo '  -L         Set to symbolic link,    alias for `-o type=sym,mode=0777`.'
+        echo '  -P         Set to named pipe,       alias for `-o type=fifo,mode=0644`.'
+        echo '  -o OPTION  Configure fields of header.'
+        echo
     }
     dump_i() {
         # Dump field at `i` aligned to field width `W[i]`.
@@ -101,8 +119,8 @@ ustar-dump() {
                     m|mode ) i=1 ;;
                     u|uid ) i=2 ;;
                     g|gid ) i=3 ;;
-                    s|size ) i=4 ;;
-                    t|date|time|mtime ) i=5 ;;
+                    s|sz|size ) i=4 ;;
+                    t|mtime|date|time ) i=5 ;;
                     T|type ) i=7 ;;
                     l|link|linkname|target ) i=8 ;;
                     U|user|uname ) i=11 ;;
@@ -125,20 +143,20 @@ ustar-dump() {
     }
     local -i i d
     local OPTARG OPTIND OPTERR=1 opt v s
-    if [[ -n ${USTAR_OPTS:+x} ]]; then
-        OPTARG="$USTAR_OPTS" setopt
+    if [[ -n ${USTAR_OPTIONS:+x} ]]; then
+        OPTARG="$USTAR_OPTIONS" setopt
     fi
-    while getopts ":hBCDFLPSo:" opt; do
+    while getopts ":hBCDFHLPo:" opt; do
         case "$opt" in
             o) setopt ;;
-            h) usage; return ;;
+            h) help; return ;;
             B) OPTARG="T=b,m=0666" setopt ;;
             C) OPTARG="T=c,m=0666" setopt ;;
             D) OPTARG="T=d,m=0775" setopt ;;
             F) OPTARG="T=-,m=0644" setopt ;;
-            L) OPTARG="T=h,m=0644" setopt ;;
+            H) OPTARG="T=h,m=0644" setopt ;;
+            L) OPTARG="T=l,m=0777" setopt ;;
             P) OPTARG="T=p,m=0644" setopt ;;
-            S) OPTARG="T=l,m=0777" setopt ;;
             *) usage >&2; return 1 ;;
         esac
     done
@@ -153,7 +171,7 @@ ustar-dump() {
         # and offers some auto-magic, like:
         # - trim trailing `/`
         # - append `/` if type is set to directory
-        printf -v v '%s%b' "${1%/}" "\\0$(( 57 * (F[7] == 5) ))"
+        printf -v v '%s%b' "${1%"${1##*[^/]}"}" "\\0$(( 57 * (F[7] == 5) ))"
         setpath_v
     fi
     # Set header `magic` (9), `version` (10), payload ($2) and `size`(4) of
