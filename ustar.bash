@@ -157,8 +157,8 @@ ustar-dump() {
     # payload. The second argument can be utilized to dump an aligned
     # payload (17) after the header block.
     # MAGIC    VERSION  RESERVED PAYLOAD
-    F[9]=ustar F[10]=00 F[16]="" F[17]="$2"
-    i=4 v=${#2} set_iv
+    F[9]=ustar F[10]=00 F[16]="" F[17]="${2:-}"
+    i=4 v=${#F[17]} set_iv
     # calculate header checksum for fields 0..15
     v="${F[*]:0:16}"
     for (( i=0,F[6]=256; i<${#v}; i++,F[6]+=d )); do
