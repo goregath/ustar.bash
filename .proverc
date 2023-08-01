@@ -10,4 +10,5 @@
 
 # TEST FILES
 
+test/setsize.bats
 test/setpath.bats
