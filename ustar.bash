@@ -17,10 +17,9 @@ ustar-dump() {
         printf 'USAGE: ustar-dump [-hBCDFLPS] [-o OPT] [--] [PATH] [PAYLOAD]\n'
     }
     dump_i() {
-        # Dump field at `i` aligned to field width `w`.
-        local -n w="W[i]" t="T[i]"
+        # Dump field at `i` aligned to field width `W[i]`.
         local -i n=${#F[i]}
-        local -i p=$(( n == 0 ? w : (n != w ? w - n % w : 0) ))
+        local -i p=$(( n == 0 ? W[i] : (n != W[i] ? W[i] - n % W[i] : 0) ))
         # Special case for i=17: Do not dump if payload is zero length.
         if (( i != 17 || n > 0 )); then
             printf %s "${F[i]}"
@@ -30,9 +29,8 @@ ustar-dump() {
         fi
     }
     set_iv() {
-        # Set field at `i` to `v` with respect to type `t` and width `w`.
-        local -n w="W[i]" t="T[i]"
-        case $t in
+        # Set field at `i` to `v` with respect to type `T[i]` and width `W[i]`.
+        case "${T[i]}" in
             t )
                 case "$v" in
                     -|reg|file|regular ) v=0 ;;
@@ -50,7 +48,7 @@ ustar-dump() {
                 ;;& # continue
             d )
                 case "$v" in
-                    now ) v=$EPOCHSECONDS ;;
+                    now ) printf -v v '%(%s)T' ;;
                 esac
                 ;& # fallthrough
             o )
@@ -61,8 +59,8 @@ ustar-dump() {
                 printf -v v '%o' "$v"
                 ;& # fallthrough
             * )
-                if (( w > 1 && ${#v} > w-1 )); then
-                    printf "error: %q does not fit string[%d]\n" "$v" "$w" >&2
+                if (( W[i] > 1 && ${#v} > W[i]-1 )); then
+                    printf "error: %q does not fit string[%d]\n" "$v" "${W[i]}" >&2
                     return 1
                 fi
                 F[i]="$v" ;;

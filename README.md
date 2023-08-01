@@ -4,7 +4,7 @@ A pure bash library for generating uncompressed tarball chunks.
 
 This implementation is fully self-contained and does not rely on any external programs.
 
-Tested with _bash 5.1_, striving for support from _4.3+_.
+Tested with _GNU Bash 5.1_, _4.4_ and _4.3_, striving for full support from _4.3+_.
 
 ## Example
 
@@ -29,4 +29,4 @@ lrwxrwxrwx 0/0     0 2023-08-01 13:37 a/symlink -> file
 
 ## Requirements
 
-At its current state, _GNU Bash 5.1+_ is required with array support enabled.
+Only _GNU Bash 4.3+_ is required with array support enabled.
