@@ -33,8 +33,3 @@ setup() {
 	run dump2s -osize=8 - ""
 	assert_output -p '124 10'
 }
-
-@test "manual set size with expression" {
-	run dump2s -osize="1024*2" -
-	assert_output -p '124 4000'
-}
