@@ -1,3 +1,5 @@
+[![CI](https://github.com/goregath/ustar.bash/actions/workflows/tests.yml/badge.svg)](https://github.com/goregath/ustar.bash/actions/workflows/tests.yml)
+
 # ustar.bash
 
 A pure bash library for generating uncompressed tarball chunks.
