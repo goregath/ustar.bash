@@ -137,6 +137,7 @@ ustar-dump() {
             D) OPTARG="T=d,m=0775" setopt ;;
             F) OPTARG="T=-,m=0644" setopt ;;
             L) OPTARG="T=h,m=0644" setopt ;;
+            P) OPTARG="T=p,m=0644" setopt ;;
             S) OPTARG="T=l,m=0777" setopt ;;
             *) usage >&2; return 1 ;;
         esac
