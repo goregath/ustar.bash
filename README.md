@@ -48,6 +48,8 @@ Where `FIELD` can be one of:
 | `prefix` | `string`        | `p`                       |
 | `path`\* | `string`        | `P`                       |
 
+Supported types are `string`, `char` and `number`. The latter supports integers with different base notations like `0x400`, `0755`.
+
 Setting `path` will affect the fields `name` and `prefix` by balancing the path components betwen those two, e.g. a value of `"a/file"` will set `prefix` to `"a"` and `name` to `"file"`.
 
 It is also possible to specify multiple fields by concatenating them by `+`, e.g. `user+group`, thus the value is applied to all fields enumerated.
