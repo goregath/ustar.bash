@@ -28,5 +28,5 @@ dump2s() {
 	#   char prefix[155];    /* 345 */
 	#                        /* 500 */
 	# };
-	ustar-dump "$@" | strings -td -n1 | sed -e 's/^[ \t]*//'
+	ustar-dump "$@" | strings -td -n1 | awk '{ $1=sprintf("%03d",$1) } 1'
 }

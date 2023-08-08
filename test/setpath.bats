@@ -20,22 +20,24 @@ setup() {
 
 @test "set path implicitely sets name and prefix" {
 	run dump2s dir/file
-	assert_output -p '0 file'
-	assert_output -p '345 dir'
+	assert_line '000 file'
+	assert_line '345 dir'
 }
 
 @test "set name" {
 	run dump2s -o name=dir/file -
-	assert_output -p '0 dir/file'
+	assert_line     '000 dir/file'
+	refute_line -e '^346'
 }
 
 @test "set prefix" {
 	run dump2s -o prefix=dir/file -
-	assert_output -p '345 dir/file'
+	refute_line -e '^000'
+	assert_line     '345 dir/file'
 }
 
 @test "set prefix,name" {
 	run dump2s -o prefix=dir,name=file -
-	assert_output -p '0 file'
-	assert_output -p '345 dir'
+	assert_line '000 file'
+	assert_line '345 dir'
 }

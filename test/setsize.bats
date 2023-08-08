@@ -16,20 +16,20 @@ setup() {
 
 @test "manual set size" {
 	run dump2s -osize=8 -
-	assert_output -p '124 10'
+	assert_line '124 10'
 }
 
 @test "implicit set size for non-empty payload" {
 	run dump2s - "abc"
-	assert_output -p '124 3'
+	assert_line '124 3'
 }
 
 @test "implicit set size overrides manual one for non-empty payload" {
 	run dump2s -osize=8 - "abc"
-	assert_output -p '124 3'
+	assert_line '124 3'
 }
 
 @test "manual set size overrides implicit one for empty payload" {
 	run dump2s -osize=8 - ""
-	assert_output -p '124 10'
+	assert_line '124 10'
 }
