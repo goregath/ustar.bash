@@ -4,7 +4,7 @@
 # @Author: goregath
 # @Date:   2023-07-29 14:28:29
 # @Last Modified by:   goregath
-# @Last Modified time: 2023-07-31 20:43:17
+# @Last Modified time: 2023-08-08 22:05:02
 
 # Dump a tar-header with payload to stdout according to POSIX 1003.1-1990 with a blocksize of 512.
 ustar-dump() {
@@ -63,7 +63,7 @@ ustar-dump() {
                         printf "error: %q: invalid type flag\n" "$v" >&2
                         return 1 ;;
                 esac
-                ;;& # continue
+                ;;& # next clause
             d )
                 case "$v" in
                     now ) printf -v v '%(%s)T' ;;
@@ -198,3 +198,8 @@ ustar-dump() {
         dump_i
     done
 }
+
+if ! return 2>/dev/null; then
+    # only executed if not sourced
+    ustar-dump "$@"
+fi
