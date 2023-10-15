@@ -10,55 +10,90 @@ Tested with _GNU Bash 5.1_, _4.4_ and _4.3_, striving for full support from _4.3
 
 ## Usage
 
-```plain
-USAGE: ustar-dump [-hBCDFHLP] [-o OPTION] [--] PATH [PAYLOAD]
+    USAGE: ustar-dump [-hBCDFHLP] [-o OPTION] [--] PATH [PAYLOAD]
+    
+      -h         Display this text and exit.
+      -B         Set to block device,     alias for `-o type=blk,mode=0666`.
+      -C         Set to character device, alias for `-o type=chr,mode=0666`.
+      -D         Set to directory,        alias for `-o type=dir,mode=0775`.
+      -F         Set to regular file,     alias for `-o type=reg,mode=0644`.
+      -H         Set to hard link,        alias for `-o type=lnk,mode=0644`.
+      -L         Set to symbolic link,    alias for `-o type=sym,mode=0777`.
+      -P         Set to named pipe,       alias for `-o type=fifo,mode=0644`.
+      -o OPTION  Configure fields of header.
 
-  -h         Display this text and exit.
-  -B         Set to block device,     alias for `-o type=blk,mode=0666`.
-  -C         Set to character device, alias for `-o type=chr,mode=0666`.
-  -D         Set to directory,        alias for `-o type=dir,mode=0775`.
-  -F         Set to regular file,     alias for `-o type=reg,mode=0644`.
-  -H         Set to hard link,        alias for `-o type=lnk,mode=0644`.
-  -L         Set to symbolic link,    alias for `-o type=sym,mode=0777`.
-  -P         Set to named pipe,       alias for `-o type=fifo,mode=0644`.
-  -o OPTION  Configure fields of header.
-```
+
 ### Setting fields
 
 Use the `-o OPTION` to change specific fields of a header. The `OPTION` argument is defined as follows:
-```
-OPTION := FIELD[+FIELD..]=[VALUE][,OPTION..]
-```
-Where `FIELD` can be one of:
 
-| field    | type            | alias                     |
-|----------|-----------------|---------------------------|
-| `name`   | `string`        | `n`                       |
-| `mode`   | `number`        | `m`                       |
-| `uid`    | `number`        | `u`                       |
-| `gid`    | `number`        | `g`                       |
-| `size`   | `number`        | `s`, `sz`                 |
-| `mtime`  | `number`        | `t`, `time`, `date`       |
-| `type`   | `number`,`char` | `T`                       |
-| `link`   | `string`        | `l`, `target`, `linkname` |
-| `user`   | `string`        | `U`, `uname`              |
-| `group`  | `string`        | `G`, `gname`              |
-| `major`  | `string`        | `D`, `devmajor`           |
-| `minor`  | `string`        | `d`, `devminor`           |
-| `prefix` | `string`        | `p`                       |
-| `path`\* | `string`        | `P`                       |
+    OPTION := FIELD[+FIELD..]=[VALUE][,OPTION..]
 
-Supported types are `string`, `char` and `number`. The latter supports integers with different base notations like `0x400`, `0755`.
+The assignment of `VALUE` can either be a string or numeric constant. The latter supports integers with different base
+notations like `0x400`, `0755`. If a field is not defined it either defaults to the empty string `""` or `0` for strings
+or numbers respectively. Please take note, that an assignment is terminated by `,` (comma) or `\n` (newline). Literals
+like `,` or `\n` should be escaped properly, e.g. `lorem ispum\, dolor`.
 
-Setting `path` will affect the fields `name` and `prefix` by balancing the path components betwen those two, e.g. a value of `"a/file"` will set `prefix` to `"a"` and `name` to `"file"`.
+It is also possible to specify multiple fields by concatenating them by `+`, e.g. `user+group`, thus the value is
+applied to all fields enumerated.
 
-It is also possible to specify multiple fields by concatenating them by `+`, e.g. `user+group`, thus the value is applied to all fields enumerated.
-
-The assignment of `VALUE` can either be a string or numeric constant. Please take note, that an assignment is terminated by `,` (comma) or `\n` (newline). Literals like `,` or `\n` should be escaped properly, e.g. `lorem ispum\, dolor`.
-
-Multiple options can be specified either by concatenation `,` (comma), or by specifying multiple `-o` options at command line. Its values are applied in order appearance.
+Multiple options can be specified either by concatenation `,` (comma), or by specifying multiple `-o` options at command
+line. Its values are applied in order appearance.
 
 There is also a special variable `USTAR_OPTIONS` whose content is applied before command line arguments are evaluated.
+Please take a look at the [Example](#example) section for how it can be used.
+
+Where `FIELD` can be one of:
+
+| field    | type              | alias                     | example            |
+|----------|-------------------|---------------------------|--------------------|
+| `name`   | `string`          | `n`                       |                    |
+| `mode`   | `number`          | `m`                       | `420`, `0644`      |
+| `uid`    | `number`          | `u`                       |                    |
+| `gid`    | `number`          | `g`                       |                    |
+| `size`   | `number`          | `s`, `sz`                 |                    |
+| `mtime`  | `number`,`string` | `t`, `time`, `date`       | `now`, `283996800` |
+| `type`   | `number`,`string` | `T`                       | `0`, `-`, `reg`    |
+| `link`   | `string`          | `l`, `target`, `linkname` |                    |
+| `user`   | `string`          | `U`, `uname`              |                    |
+| `group`  | `string`          | `G`, `gname`              |                    |
+| `major`  | `number`          | `D`, `devmajor`           |                    |
+| `minor`  | `number`          | `d`, `devminor`           |                    |
+| `prefix` | `string`          | `p`                       |                    |
+| `path`\* | `string`          | `P`                       |                    |
+
+The fields `prefix` and `name` are used to specify the file name of the chunk. A `prefix` of `"sub/dir"` and a `name` of
+`"file"` is interpreted by the tar specification as `"sub/dir/name"`.
+
+The `path` field has a special meaning, setting it will affect the fields `name` and `prefix` by balancing the path
+components between those two, e.g. a value of `"a/file"` will set `prefix` to `"a"` and `name` to `"file"`. The `path`
+value can either be specified as an option or via command line argument (see [Usage](#usage)). The latter form is for
+convenience and offers some auto-magic like appending a trailing `/` if the `type` has been previously set to directory.
+Please take note that this form is only applied if neither `prefix` nor `name` has been previously set.
+
+File permissions can be set by `mode` but only numeric constants are allowed, octal notations like `0755` are supported.
+File ownership can either be set with `uid` (user id) and `gid` (group id) or with `user` or `group` or both.
+
+File modification time is set by `mtime` in seconds since epoch ([Unix time][unixtime]). If the special value `"now"`is
+supplied, `mtime` is set to the current time [UTC][utc].
+
+The file type can be set with `type` using either a single character or an alias string as you can see in the table
+below: 
+
+| type             | number | symbolic | alias                        |
+|------------------|--------|----------|------------------------------|
+| regular file     | `0`    | `-`      | `reg`, `file`, `regular`     | 
+| hard link        | `1`    | `h`      | `lnk`, `link`, `hardlink`    |
+| symbolic link    | `2`    | `l`      | `sym`, `softlink`, `symlink` |
+| character device | `3`    | `c`      | `chr`, `char`                |
+| block device     | `4`    | `b`      | `blk`, `block`               |
+| directory        | `5`    | `d`      | `dir`, `directory`           |
+| named pipe       | `7`    | `p`      | `fifo`, `pipe`               |
+
+The field `link` is only of relevance if the `type` is set to either `h` (hard link) or `l` (symbolic link).
+
+Device numbers, `major` and `minor`, are only of relevance if the `type` is set to either `c` (character device) or `b`
+(block device).
 
 ## Example
 
@@ -86,3 +121,6 @@ lrwxrwxrwx root/root         0 2023-07-31 13:37 a/symlink -> file
 ## Requirements
 
 Only _GNU Bash 4.3+_ is required with array support enabled.
+
+[unixtime]: https://en.wikipedia.org/wiki/Unix_time
+[utc]: https://en.wikipedia.org/wiki/Coordinated_Universal_Time
