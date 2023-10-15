@@ -53,7 +53,7 @@ ustar-dump() {
                 case "$v" in
                     -|reg|file|regular ) v=0 ;;
                     h|lnk|link|hardlink ) v=1 ;;
-                    l|sym|symlink ) v=2 ;;
+                    l|sym|softlink|symlink ) v=2 ;;
                     c|chr|char ) v=3 ;;
                     b|blk|block ) v=4 ;;
                     d|dir|directory ) v=5 ;;
@@ -199,7 +199,9 @@ ustar-dump() {
     done
 }
 
+# shellcheck disable=SC2317
 if ! return 2>/dev/null; then
     # only executed if not sourced
+    set -eE
     ustar-dump "$@"
 fi
