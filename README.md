@@ -114,33 +114,56 @@ Some restrictions are resumed in the [GNU Manual][gnu-manual-tar-format]:
 
 ## Examples
 
-### Packer Script
+### Demo
 
 ```bash
 #!/usr/bin/env bash
+
 set -euE -o pipefail
+
 source ustar.bash
 
 USTAR_OPTIONS=user+group=root,mtime=now
 
 pack() {
-    ustar-dump -D a
-    ustar-dump -F a/file "lorem ipsum"
-    ustar-dump -Lo target=file a/symlink
+  ustar-dump -D a
+  ustar-dump -F a/file "lorem ipsum"
+  ustar-dump -Lo target=file a/symlink
 }
 
-pack | tar -tvf -
+pack
 ```
+
 ```plain
+$ examples/demo.sh | tar -tvf -
 drwxrwxr-x root/root         0 2023-07-31 13:37 a/
 -rw-r--r-- root/root        11 2023-07-31 13:37 a/file
 lrwxrwxrwx root/root         0 2023-07-31 13:37 a/symlink -> file
 ```
 
-### Pasting a File
+### Archive file from disk
 
 ```bash
-TODO
+#!/usr/bin/env bash
+
+# A simple program that packs itself into a tar archive.
+
+set -euE -o pipefail
+
+# shellcheck source=/dev/null
+source ustar.bash
+
+pack() {
+  ustar-dump -Fo mode=0755,mtime=now,size="$(stat -Lc %s "$1")" "$(basename "$1")"
+  dd if="$0" ibs=512 conv=sync status=none
+}
+
+pack "$0"
+```
+
+```plain
+$ examples/echo.sh | tar -tvf -
+-rwxr-xr-x 0/0             298 2023-07-31 13:37 echo.sh
 ```
 
 ## Requirements
