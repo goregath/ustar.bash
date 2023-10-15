@@ -166,6 +166,27 @@ $ examples/echo.sh | tar -tvf -
 -rwxr-xr-x 0/0             298 2023-07-31 13:37 echo.sh
 ```
 
+### GNU Make
+
+For a full listing please see [examples/demo.mk](examples/demo.mk).
+
+```plain
+$ make -f examples/demo.mk clean all
+mkdir -p tmp/ustar/
+./ustar.bash -o group=root -o mode=0644 -o mtime=1697399708 -o name=README -o prefix=ustar.bash-7c92690 -o size=0 -o type=file -o user=root -- "" "A demo archive with ustar.bash and make" > tmp/ustar/README
+./ustar.bash -o group=root -o mode=0755 -o mtime=1697399708 -o name=lib/ustar.bash -o prefix=ustar.bash-7c92690 -o size=7450 -o type=file -o user=root -- "" "" > tmp/ustar/lib-ustar
+./ustar.bash -o group=root -o link=../lib/ustar.bash -o mode=0777 -o mtime=1697399708 -o name=bin/ustar-dump -o prefix=ustar.bash-7c92690 -o size=0 -o type=symlink -o user=root -- "" "" > tmp/ustar/bin-ustar
+dd if=tmp/ustar/README of=demo.tar ibs=512 conv=sync,notrunc oflag=append status=none 
+dd if=tmp/ustar/lib-ustar of=demo.tar ibs=512 conv=sync,notrunc oflag=append status=none 
+dd if=ustar.bash of=demo.tar ibs=512 conv=sync,notrunc oflag=append status=none 
+dd if=tmp/ustar/bin-ustar of=demo.tar ibs=512 conv=sync,notrunc oflag=append status=none 
+tar -tvf demo.tar
+-rw-r--r-- root/root        39 2023-10-15 21:55 ustar.bash-7c92690/README
+-rwxr-xr-x root/root      7450 2023-10-15 21:55 ustar.bash-7c92690/lib/ustar.bash
+lrwxrwxrwx root/root         0 2023-10-15 21:55 ustar.bash-7c92690/bin/ustar-dump -> ../lib/ustar.bash
+gzip -kf demo.tar
+```
+
 ## Requirements
 
 Only _GNU Bash 4.3+_ is required with array support enabled.
