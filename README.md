@@ -41,7 +41,7 @@ Multiple options can be specified either by concatenation `,` (comma), or by spe
 line. Its values are applied in order appearance.
 
 There is also a special variable `USTAR_OPTIONS` whose content is applied before command line arguments are evaluated.
-Please take a look at the [Example](#example) section for how it can be used.
+Please take a look at the [Examples](#examples) section for how it can be used.
 
 Where `FIELD` can be one of:
 
@@ -63,7 +63,7 @@ Where `FIELD` can be one of:
 | `path`\* | `string`          | `P`                       |                    |
 
 The fields `prefix` and `name` are used to specify the file name of the chunk. A `prefix` of `"sub/dir"` and a `name` of
-`"file"` is interpreted by the tar specification as `"sub/dir/name"`.
+`"file"` is interpreted by the tar specification as `"sub/dir/file"`.
 
 The `path` field has a special meaning, setting it will affect the fields `name` and `prefix` by balancing the path
 components between those two, e.g. a value of `"a/file"` will set `prefix` to `"a"` and `name` to `"file"`. The `path`
@@ -74,8 +74,8 @@ Please take note that this form is only applied if neither `prefix` nor `name` h
 File permissions can be set by `mode` but only numeric constants are allowed, octal notations like `0755` are supported.
 File ownership can either be set with `uid` (user id) and `gid` (group id) or with `user` or `group` or both.
 
-File modification time is set by `mtime` in seconds since epoch ([Unix time][unixtime]). If the special value `"now"`is
-supplied, `mtime` is set to the current time [UTC][utc].
+File modification time is set by `mtime` in seconds since epoch ([Unix time][wiki-unixtime]). If the special value
+`"now"`is supplied, `mtime` is set to the current time [UTC][wiki-utc].
 
 The file type can be set with `type` using either a single character or an alias string as you can see in the table
 below: 
@@ -95,7 +95,26 @@ The field `link` is only of relevance if the `type` is set to either `h` (hard l
 Device numbers, `major` and `minor`, are only of relevance if the `type` is set to either `c` (character device) or `b`
 (block device).
 
-## Example
+## USTAR Format
+
+This implementation follows the *USTAR* (*Unix Standard TAR*) specification for portable *tar* archives as defined by
+POSIX.1-1988 and POSIX.1-2001. 
+
+It does not have support for extended header capabilities, later enhancements to overcome the fixed field size
+limitations and the inability to store additional fields like [Extended Attributes][xattr(7)]. 
+
+Some restrictions are resumed in the [GNU Manual][gnu-manual-tar-format]:
+
+> * File names can contain at most 255 bytes.
+> * File names longer than 100 bytes must be split at a directory separator in two parts, the first being at most 155
+>   bytes long. So, in most cases file names must be a bit shorter than 255 bytes.
+> * Symbolic links can contain at most 100 bytes.
+> * Files can contain at most 8 GiB (2^33 bytes = 8,589,934,592 bytes).
+> * UIDs, GIDs, device major numbers, and device minor numbers must be less than 2^21 (2,097,152). 
+
+## Examples
+
+### Packer Script
 
 ```bash
 #!/usr/bin/env bash
@@ -118,9 +137,18 @@ drwxrwxr-x root/root         0 2023-07-31 13:37 a/
 lrwxrwxrwx root/root         0 2023-07-31 13:37 a/symlink -> file
 ```
 
+### Pasting a File
+
+```bash
+TODO
+```
+
 ## Requirements
 
 Only _GNU Bash 4.3+_ is required with array support enabled.
 
-[unixtime]: https://en.wikipedia.org/wiki/Unix_time
-[utc]: https://en.wikipedia.org/wiki/Coordinated_Universal_Time
+[wiki-unixtime]: https://en.wikipedia.org/wiki/Unix_time "Wikipedia: Unix Time"
+[wiki-utc]: https://en.wikipedia.org/wiki/Coordinated_Universal_Time "Wikipedia: Coordinated Universal Time"
+[gnu-manual-tar-format]: https://www.gnu.org/software/tar/manual/tar.html#Formats "GNU Tar Manual: Formats"
+[gnu-manual-tar-standard]: https://www.gnu.org/software/tar/manual/tar.html#Standard "GNU Tar Manual: Standard"
+[xattr(7)]: http://www.kernel.org/doc/man-pages/online/pages/man7/xattr.7.html "Manpage of xattr(7)" 
