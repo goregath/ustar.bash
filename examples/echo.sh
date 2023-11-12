@@ -8,8 +8,8 @@ set -euE -o pipefail
 source ustar.bash
 
 pack() {
-  ustar-dump -Fo mode=0755,mtime=now,size="$(stat -Lc %s "$1")" "$(basename "$1")"
-  dd if="$0" ibs=512 conv=sync status=none
+  ustar-dump -Fo"$(stat -Lc mode=%04a,mtime=%Y,size=%s -- "$1")" "$(basename "$1")"
+  dd if="$1" ibs=512 conv=sync status=none
 }
 
 pack "$0"
