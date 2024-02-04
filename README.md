@@ -88,7 +88,7 @@ below:
 | character device | `3`    | `c`      | `chr`, `char`                |
 | block device     | `4`    | `b`      | `blk`, `block`               |
 | directory        | `5`    | `d`      | `dir`, `directory`           |
-| named pipe       | `7`    | `p`      | `fifo`, `pipe`               |
+| named pipe       | `6`    | `p`      | `fifo`, `pipe`               |
 
 The field `link` is only of relevance if the `type` is set to either `h` (hard link) or `l` (symbolic link).
 
