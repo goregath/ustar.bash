@@ -74,7 +74,7 @@ ustar-dump() {
                     printf "error: %q: invalid number\n" "$v" >&2
                     return 1
                 fi
-                printf -v v '%o' "$v"
+                printf -v v '%0*o' $((W[i]-1)) "$v"
                 ;& # fallthrough
             * )
                 if (( W[i] > 1 && ${#v} > W[i]-1 )); then
